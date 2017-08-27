@@ -1,36 +1,27 @@
-FROM debian:jessie
-MAINTAINER yaasita
+FROM ubuntu:16.04
+MAINTAINER cannin
 
-#apt
-ADD 02proxy /etc/apt/apt.conf.d/02proxy
-RUN apt-get update
-RUN apt-get upgrade -y
+# Basic packages
+RUN apt-get update; apt-get upgrade -y
+RUN apt-get install -y htop git wget nano links
 
-#ssh
-RUN apt-get install -y openssh-server
-RUN mkdir /var/run/sshd/
-RUN mkdir /root/.ssh
-ADD authorized_keys /root/.ssh/authorized_keys
-RUN perl -i -ple 's/^(permitrootlogin\s)(.*)/\1yes/i' /etc/ssh/sshd_config
-RUN echo root:root | chpasswd
-
-# supervisor
+# Install supervisord
 RUN apt-get install -y supervisor
-ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-EXPOSE 22 80
-CMD ["/usr/bin/supervisord"]
 
-# package
-RUN apt-get install -y vim aptitude htop
+# Install Apache
+RUN apt-get install -y php7.0-gd php-pear libapache2-mod-php7.0 apache2 apache2-utils php-apcu
 
-# jquery-file-upload
-RUN apt-get install -y php5-gd php-pear \
- libapache2-mod-php5 apache2 apache2-utils php5-apcu 
-COPY 9.9.3.tar.gz /var/www/jquery.tgz
-RUN tar xvaf /var/www/jquery.tgz -C /var/www
-RUN mv /var/www/jQuery* /var/www/upload
+# Install jQuery-File-Upload/
+RUN git clone https://github.com/blueimp/jQuery-File-Upload.git /var/www/upload
 ADD jquery-file-upload/index.html /var/www/upload/index.html
-ADD php/php.ini /etc/php5/apache2/php.ini
+
+# Configure apache
+ADD php/php.ini /etc/php/7.0/apache2/php.ini
 ADD apache/apache2.conf /etc/apache2/apache2.conf
 ADD apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN chmod 777 /var/www/upload/server/php/files
+
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 80
+CMD ["/usr/bin/supervisord"]

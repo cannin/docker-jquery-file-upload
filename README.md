@@ -1,8 +1,14 @@
-docker_jquery-file-upload
-=========================
+# docker-jquery-file-upload
 
-https://github.com/blueimp/jQuery-File-Upload
+Upload using: https://github.com/blueimp/jQuery-File-Upload
 
-# 動かし方
+# Build
+```
+docker build -t cannin/jquery-file-upload .
+```
 
-docker run -d -p 22 -p 80:80 -v /tmp:/tmp uploader /usr/bin/supervisord
+# Run
+```
+docker rm -f fs; docker run --name=fs -p 80:80 -v PATH:/var/www/upload/server/php/files cannin/jquery-file-upload /usr/bin/supervisord
+docker exec -it fs bash
+```
